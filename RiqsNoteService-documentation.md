@@ -126,7 +126,7 @@ Creates a new RIQS Note.
 </article>
 ```
  
-**Success Response:** See [Common Responses](#common-responses).
+**Success Response:** See [Common Responses](#success-response).
  
 **Response Fields:**
  
@@ -190,7 +190,7 @@ Updates an existing RIQS Note.
 | `MentionedUsers` | `MentionedUser[]` | Yes | Updated list of mentioned users. Pass `[]` if none. See `createNote` for object shape |
 | `ClientId` | `string` (GUID) | Yes | The client this note belongs to |
 
-**Success Response:** See [Common Responses](#common-responses).
+**Success Response:** See [Common Responses](#success-response).
 
 **Returns:** `Observable<any>`
 
@@ -487,7 +487,7 @@ Creates a new comment for a specific RIQS Note.
 | `ClientId` | `string` | - | Client identifier |
 | `RIQSNoteId` | `string` | - | Parent RIQS Note ID |
 
-**Success Response:** See [Common Responses](#common-responses).
+**Success Response:** See [Common Responses](#success-response).
  
 **Returns:** `Observable<any>` — emits the command response confirming whether the comment was created successfully.
 
@@ -542,7 +542,7 @@ Updates an existing comment on a RIQS Note.
 | `ClientId` | `string (GUID)` | required | Client identifier for the request |
 | `ItemId` | `string (GUID)` | required | ID of the comment being updated |
 
-**Success Response:** See [Common Responses](#common-responses).
+**Success Response:** See [Common Responses](#success-response).
  
 **Returns:** `Observable<any>` — emits the command response confirming whether the comment was successfully updated.
 
@@ -570,7 +570,7 @@ Deletes an existing comment on a RIQS Note.
 |-------|------|---------|-------------|
 | `ItemId` | `string (GUID)` | required | ID of the comment to be deleted |
 
-**Success Response:** See [Common Responses](#common-responses).
+**Success Response:** See [Common Responses](#success-response).
 
 **Returns:** `Observable<any>` — emits the command response confirming whether the comment was successfully deleted.
 
@@ -679,7 +679,7 @@ Marks one or more notifications as read for the current user.
 | `UserId` | `string (GUID)` | required | ID of the user marking the notification as read |
 | `NotificationIds` | `string[]` | required | Array of notification IDs to mark as read; wraps the single `id` argument in an array |
 
-**Success Response:** See [Common Responses](#common-responses).
+**Success Response:** See [Common Responses](#success-response).
 
 **Returns:** `Observable<any>` — emits the command response confirming whether the notification was successfully marked as read.
 
@@ -724,7 +724,7 @@ This allows inserting notes between existing ones without renumbering the entire
 | Moved to first position | `nextNote.OrderNumber / 2` | `10 / 2 = 5` |
 | Moved to last position | `prevNote.OrderNumber + some increment` | `20 + 10 = 30` |
 
-**Success Response:** See [Common Responses](#common-responses).
+**Success Response:** See [Common Responses](#success-response).
 
 **Returns:** `Observable<any>` — emits the command response confirming whether the note order was successfully updated.
 
@@ -757,7 +757,7 @@ Toggles the pinned state of a RIQS Note.
 | `NoteId` | `string (GUID)` | required | ID of the note to pin or unpin |
 | `IsPinned` | `boolean` | required | The new pinned state; always passed as `!currentIsPinned` to toggle |
 
-**Success Response:** See [Common Responses](#common-responses).
+**Success Response:** See [Common Responses](#success-response).
 
 **Returns:** `Observable<any>` — emits the command response confirming whether the note's pinned status was successfully updated.
 
