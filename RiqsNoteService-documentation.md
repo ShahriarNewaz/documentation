@@ -26,30 +26,210 @@
 
 ## Methods
 
----
-
+### Create Note
 ### `createNote(payload)`
-
+ 
 Creates a new RIQS Note.
 
+> **Permission:** All authenticated users can create a note.
+
 **Endpoint:** `POST PraxisMonitorCommand/CreateRIQSNote`
+ 
+**Payload:**
+```json
+{
+  "Content": "<article class=\"riqsit-note\"><h1 class=\"editor-title\">Note Title</h1><section class=\"editor-body\"><p>Note body text here</p></section></article>",
+  "BackgroundColor": "none",
+  "Possition": {
+    "XCoordinate": 0,
+    "YCoordinate": 0
+  },
+  "Attachments": [],
+  "NoteType": "personal",
+  "AdditionalMetadata": {},
+  "MentionedUsers": [],
+  "ClientId": "b9a1fcf1-2193-48b0-8722-c3d84c0ae070"
+}
+```
+ 
+**Payload Fields:**
+ 
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `Content` | `string` (HTML) | Yes | Full HTML content of the note. Must follow the structure: `<article class="riqsit-note">` → `<h1 class="editor-title">` for title + `<section class="editor-body">` for body |
+| `BackgroundColor` | `string` | Yes | Background color of the note card. Use `"none"` for default/transparent |
+| `Possition.XCoordinate` | `number` | Obsolete | ~~Vertical position of the note (canvas Y-axis)~~ — **Not used, pass `0`** |
+| `Possition.YCoordinate` | `number` | Obsolete | ~~Vertical position of the note (canvas Y-axis)~~ — **Not used, pass `0`** |
+| `Attachments` | `Attachment[]` | Yes | List of file attachments. Pass `[]` if none |
+| `NoteType` | `string` | Yes | Type of note. Known values: `"personal"` |
+| `AdditionalMetadata` | `object` | Yes | Extra key-value metadata. Pass `{}` if unused |
+| `MentionedUsers` | `MentionedUser[]` | Yes | List of users mentioned via `@` in the note body. Pass `[]` if none |
+| `ClientId` | `string` (GUID) | Yes | The client this note belongs to |
+
+**Attachment Payload:**
+```json
+"Attachments": [
+  {
+    "CreatedOn": "2026-05-06T12:09:55.378Z",
+    "DocumentId": "3d459679-51ca-4eeb-a488-468aeb505e96",
+    "DocumentName": "invoice.pdf",
+    "FileType": "pdf",
+    "IsDeleted": false,
+    "IsUploadedFromWeb": true
+  }
+]
+```
+
+**Attachment Payload Fields:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `CreatedOn` | `string` (ISO 8601) |  Yes | Upload timestamp e.g. `"2026-05-06T12:09:55.378Z"` |
+| `DocumentId` | `string` (GUID) |  Yes | Unique ID of the uploaded document |
+| `DocumentName` | `string` |  Yes | Original filename with extension e.g. `"invoice.pdf"` |
+| `FileType` | `string` |  Yes | File extension without dot. Known values: `"pdf"`, `"png"` |
+| `IsDeleted` | `boolean` |  Yes | Soft delete flag. Always `false` on create |
+| `IsUploadedFromWeb` | `boolean` |  Yes | `true` if uploaded via the web client |
+
+**MentionedUsers Payload:**
+```json
+"MentionedUsers": [
+  {
+    "PraxisUserId": "6bbfed43-49bb-41c5-aa21-ebc5e36740e4",
+    "UserId": "988a4fa6-2494-4491-afda-672c1be0db6c",
+    "DisplayName": "AdminB 2",
+    "Email": "a.adminb@yopmail.com",
+    "PraxisImage": {
+      "FileId": "",
+      "FileName": null,
+      "FileSize": null,
+      "CreatedOn": null,
+      "Thumbnails": [],
+      "IsUploadedFromWeb": true
+    }
+  }
+]
+```
+
+**MentionedUsers Object:**
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `PraxisUserId` | `string` (GUID) | Yes | The user's ID in the Praxis system |
+| `UserId` | `string` (GUID) | Yes | The user's platform-level ID |
+| `DisplayName` | `string` | Yes | Name shown in the `@mention` e.g. `"AdminB QA"` |
+| `Email` | `string` | Yes | User's email address |
+| `PraxisImage.FileId` | `string` | Yes | Profile image file ID. Pass `""` if no image |
+| `PraxisImage.FileName` | `null` | Yes | Pass file name or `null` |
+| `PraxisImage.FileSize` | `null` | Yes | Pass file size or `null` |
+| `PraxisImage.CreatedOn` | `null` | Yes | Pass CreatedOn or  `null` |
+| `PraxisImage.Thumbnails` | `any[]` | Yes | Pass `[]` |
+| `PraxisImage.IsUploadedFromWeb` | `boolean` | Yes | Always `true` |
+
+
+**Content HTML Structure:**
+```html
+<article class="riqsit-note">
+  <h1 class="editor-title">Your Note Title</h1>
+  <section class="editor-body">
+    <p>Your note body content goes here.</p>
+  </section>
+</article>
+```
+ 
+**Success Response:**
+```json
+{
+  "Errors": {
+    "IsValid": true,
+    "Errors": [],
+    "RuleSetsExecuted": null
+  },
+  "ErrorMessages": [],
+  "StatusCode": 0,
+  "RequestUri": null,
+  "ExternalError": null,
+  "HttpStatusCode": 0
+}
+```
+ 
+**Response Fields:**
+ 
+| Field | Type | Description |
+|---|---|---|
+| `Errors.IsValid` | `boolean` | `true` means the operation succeeded without validation errors |
+| `Errors.Errors` | `any[]` | List of validation errors. Empty on success |
+| `Errors.RuleSetsExecuted` | `string \| null` | Which validation rule sets ran. Usually `null` |
+| `ErrorMessages` | `string[]` | High-level error messages. Empty on success |
+| `StatusCode` | `number` | App-level status code. `0` = success |
+| `RequestUri` | `string \| null` | Echo of the request URI, if returned |
+| `ExternalError` | `any \| null` | Error from an external service, if any |
+| `HttpStatusCode` | `number` | HTTP status code mirrored in body. `0` or `200` = success |
+ 
+**Returns:** `Observable<CreateNoteResponse>` — the response body mapped from the HTTP response.
+
+---
+
+
+
+
+### Update Note
+### `updateNote(payload)`
+
+Updates an existing RIQS Note.
+
+> **Permission:** Only the note owner can update a note.
+
+**Endpoint:** `POST PraxisMonitorCommand/UpdateRIQSNote`
 
 **Payload:**
 ```json
 {
-  "Title": "string",
-  "Description": "string",
-  "ClientId": "string",
-  "AssignedTo": "string (optional)",
-  "OrderNumber": 0
+  "ItemId": "8b9d3e92-67c2-4ae9-8072-1946f68d322d",
+  "Content": "<article class=\"riqsit-note\"><h1 class=\"editor-title\">Note Title</h1><section class=\"editor-body\"><p>Note body text here</p></section></article>",
+  "BackgroundColor": "none",
+  "Possition": {
+    "XCoordinate": 0,
+    "YCoordinate": 0
+  },
+  "Attachments": [],
+  "NoteType": "personal",
+  "AdditionalMetadata": {},
+  "MentionedUsers": [],
+  "ClientId": "b9a1fcf1-2193-48b0-8722-c3d84c0ae070"
 }
 ```
 
-**Returns:** `Observable<any>` — response body of the created note.
+**Payload Fields:**
 
----
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `ItemId` | `string` (GUID) | Yes | ID of the note to update |
+| `Content` | `string` (HTML) | Yes | Updated HTML content of the note. Same structure as `createNote` |
+| `BackgroundColor` | `string` | Yes | Background color of the note card. Use `"none"` for default/transparent |
+| `Possition.XCoordinate` | `number` | Obsolete | ~~Horizontal position on canvas~~ — Not used, always pass `0` |
+| `Possition.YCoordinate` | `number` | Obsolete | ~~Vertical position on canvas~~ — Not used, always pass `0` |
+| `Attachments` | `Attachment[]` | Yes | Updated list of attachments. Pass `[]` if none. See `createNote` for object shape |
+| `NoteType` | `string` | Yes | Type of note. Known values: `"personal"` |
+| `AdditionalMetadata` | `object` | Yes | Extra key-value metadata. Pass `{}` if unused |
+| `MentionedUsers` | `MentionedUser[]` | Yes | Updated list of mentioned users. Pass `[]` if none. See `createNote` for object shape |
+| `ClientId` | `string` (GUID) | Yes | The client this note belongs to |
 
-### `updateNote(payload)`
+**Success Response:**
+```json
+{
+  "Errors": {
+    "IsValid": true,
+    "Errors": [],
+    "RuleSetsExecuted": null
+  },
+  "ErrorMessages": [],
+  "StatusCode": 0,
+  "RequestUri": null,
+  "ExternalError": null,
+  "HttpStatusCode": 0
+}
+```
+
+**Returns:** `Observable<any>`
 
 Updates an existing RIQS Note.
 
@@ -69,18 +249,15 @@ Updates an existing RIQS Note.
 
 ---
 
+### Get RIQS Notes
 ### `getRiqsNotes(filters?)`
 
 Fetches a list of RIQS Notes, optionally filtered.
+> **Permission:** All authenticated users can fetch riqs notes.
 
 **Endpoint:** `POST PraxisMonitorQuery/GetRIQSNote`
 
-**Parameters:**
-| Param | Type | Default | Description |
-|---|---|---|---|
-| `filters` | `Filter[]` | `[]` | Array of filter objects to narrow results |
-
-**Internal Payload sent to API:**
+**Payload:**
 ```json
 {
   "FilterString": "{<generated from filters>}",
@@ -90,10 +267,92 @@ Fetches a list of RIQS Notes, optionally filtered.
 }
 ```
 
+**Parameters:**
+| Param | Type | Default | Description |
+|---|---|---|---|
+| `FilterString` | `string` | `"{}"` | JSON-like string used to filter results (generated via `prepareFilters`) |
+| `SortedBy` | `string` | `"{\"OrderNumber\": -1}"` | JSON string defining sort order (e.g. descending by `OrderNumber`) |
+| `PageSize` | `number` | `1000000` | Number of records to return |
+| `PageNumber` | `number` | `0` | Page index (0-based) |
+
+**Success Response:**
+```json
+{
+  "StatusCode": 0,
+  "ErrorMessage": null,
+  "TotalRecordCount": 1,
+  "Results": [
+    {
+      "ItemId": "16e33d85-73de-46e1-b31d-36e19f0e2ad1",
+      "Content": "<article class=\"riqsit-note\"><h1 class=\"editor-title\">mention user</h1><section class=\"editor-body\"><p class=\"mentioned-user\">@RIQS Management - QA </p></section></article>",
+      "BackgroundColor": "none",
+      "Possition": {
+        "XCoordinate": 0,
+        "YCoordinate": 0
+      },
+      "Attachments": [],
+      "NoteType": "unit",
+      "AdditionalMetadata": {},
+      "MentionedUsers": [
+        {
+          "PraxisUserId": "e10fe0b5-1ddb-4e41-a380-df442f7fc538",
+          "UserId": "adac55ad-6021-4100-84e0-6cebe11e25a9",
+          "DisplayName": "RIQS Management - QA",
+          "Image": null,
+          "Email": "riqs.manage@yopmail.com"
+        }
+      ],
+      "CreateDate": "2026-05-03T09:35:49.455Z",
+      "CreatedBy": "568725bb-89ce-412b-8db8-3184badca278",
+      "LastUpdateDate": "2026-05-03T09:35:49.455Z",
+      "LastUpdatedBy": null,
+      "CommentCount": 0,
+      "OrderNumber": 70,
+      "IsPinned": null,
+      "PinnedBy": null,
+      "PinnedByDisplayName": null
+    }
+  ]
+}
+```
+**Response Fields:**
+
+| Field | Type | Description |
+|---|---|---|
+| `StatusCode` | `number` | Application-level status code. `0` = success |
+| `ErrorMessage` | `string \| null` | Error message if request fails, otherwise `null` |
+| `TotalRecordCount` | `number` | Total number of notes available (useful for pagination) |
+| `Results` | `RIQSNote[]` | Array of returned notes |
+
+---
+
+**RIQSNote Object:**
+
+| Field | Type | Description |
+|---|---|---|
+| `ItemId` | `string` (GUID) | Unique ID of the note |
+| `Content` | `string` (HTML) | Full HTML content of the note |
+| `BackgroundColor` | `string` | Background color of the note |
+| `Possition` | `object` | Position info (obsolete, always `{0,0}`) |
+| `Attachments` | `Attachment[]` | List of attached files |
+| `NoteType` | `string` | Type of note (`personal`, `unit`, etc.) |
+| `AdditionalMetadata` | `object` | Additional key-value metadata |
+| `MentionedUsers` | `MentionedUser[]` | List of mentioned users |
+| `CreateDate` | `string` (ISO datetime) | Note creation timestamp |
+| `CreatedBy` | `string` (GUID) | User who created the note |
+| `LastUpdateDate` | `string` (ISO datetime) | Last updated timestamp |
+| `LastUpdatedBy` | `string \| null` | User who last updated the note |
+| `CommentCount` | `number` | Number of comments on the note |
+| `OrderNumber` | `number` | Used for sorting/order positioning |
+| `IsPinned` | `boolean \| null` | Whether the note is pinned |
+| `PinnedBy` | `string \| null` | User ID who pinned the note |
+| `PinnedByDisplayName` | `string \| null` | Display name of the user who pinned |
+
 **Returns:** `Observable<any[]>` — array of notes, sorted by `OrderNumber` descending.
 
 ---
 
+### Delete RIQS Note
 ### `deleteRiqsNote(itemId)`
 
 Deletes a RIQS Note by ID.
