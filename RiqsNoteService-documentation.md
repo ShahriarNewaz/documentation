@@ -13,20 +13,11 @@
 | Query (GET operations) | `PraxisBusinessService/PraxisMonitorQuery/` |
 | Command (POST/mutate) | `PraxisBusinessService/PraxisMonitorCommand/` |
 | Notifications | `NotificationService/api/Notifier/GetUnreadNotificationsBySubscriptionFilter` |
-
 ---
-
-## Properties
-
-### `navbarChanged$`
-- **Type:** `BehaviorSubject<boolean>`
-- **Purpose:** Emits when the navbar state should refresh (e.g., after notification changes).
-
----
-
 ## Methods
 
 ### Create Note
+
 ### `createNote(payload)`
  
 Creates a new RIQS Note.
@@ -231,22 +222,6 @@ Updates an existing RIQS Note.
 
 **Returns:** `Observable<any>`
 
-Updates an existing RIQS Note.
-
-**Endpoint:** `POST PraxisMonitorCommand/UpdateRIQSNote`
-
-**Payload:**
-```json
-{
-  "NoteId": "string (GUID)",
-  "Title": "string",
-  "Description": "string",
-  "AssignedTo": "string (optional)"
-}
-```
-
-**Returns:** `Observable<any>` — response body of the updated note.
-
 ---
 
 ### Get RIQS Notes
@@ -354,17 +329,20 @@ Fetches a list of RIQS Notes, optionally filtered.
 
 ### Delete RIQS Note
 ### `deleteRiqsNote(itemId)`
-
 Deletes a RIQS Note by ID.
 
 **Endpoint:** `POST PraxisMonitorCommand/DeleteRIQSNote`
+
+> **Permission:** 
+- Every user can delete their own note.
+- **Purpose:** Power and management users can delete any note.
 
 **Parameters:**
 | Param | Type | Description |
 |---|---|---|
 | `itemId` | `string` | The ID of the note to delete |
 
-**Payload sent:**
+**Payload:**
 ```json
 {
   "ItemId": "string"
@@ -375,224 +353,549 @@ Deletes a RIQS Note by ID.
 
 ---
 
-### `getRiqsNoteComments(noteId)`
 
-Fetches all comments for a specific RIQS Note.
+### Get RIQS Note Comments
+### `getRiqsNoteComments(filters?)`
+
+Fetches a list of RIQS Note comments, filtered.
+> **Permission:** All authenticated users can fetch riqs note comments.
 
 **Endpoint:** `POST PraxisMonitorQuery/GetRIQSNoteComments`
 
-**Parameters:**
-| Param | Type | Description |
-|---|---|---|
-| `noteId` | `string` | The ID of the note to fetch comments for |
-
-**Internal Payload sent to API:**
-```json
-{
-  "FilterString": "{\"RIQSNoteId\": \"<noteId>\"}",
-  "SortedBy": "{\"CreateDate\": -1}",
-  "PageSize": 1000000,
-  "PageNumber": 0
-}
-```
-
-**Returns:** `Observable<any[]>` — list of comments, sorted by `CreateDate` descending (newest first).
-
----
-
-### `saveRiqsNoteComment(payload)`
-
-Creates a new comment on a RIQS Note.
-
-**Endpoint:** `POST PraxisMonitorCommand/CreateRIQSNoteComment`
-
 **Payload:**
 ```json
 {
-  "RIQSNoteId": "string (GUID)",
-  "Comment": "string",
-  "CreatedBy": "string (userId)"
+    "FilterString": "{RIQSNoteId:'dbae1999-0316-4b28-98e4-3c8cc574abb6'}",
+    "SortedBy": "{\"CreateDate\": -1}",
+    "PageSize": 1000000,
+    "PageNumber": 0
 }
 ```
 
-**Returns:** `Observable<any>` — response body of the created comment.
+**Parameters:**
+| Param | Type | Default | Description |
+|---|---|---|---|
+| `FilterString` | `string` | `"{}"` | JSON-like string used to filter results (generated via `prepareFilters`) |
+| `SortedBy` | `string` | `"{\"OrderNumber\": -1}"` | JSON string defining sort order (e.g. descending by `OrderNumber`) |
+| `PageSize` | `number` | `1000000` | Number of records to return |
+| `PageNumber` | `number` | `0` | Page index (0-based) |
+
+**Success Response:**
+```json
+{
+  "StatusCode": 0,
+  "ErrorMessage": null,
+  "TotalRecordCount": 1,
+  "Results": [
+    {
+      "ItemId": "16e33d85-73de-46e1-b31d-36e19f0e2ad1",
+      "Content": "<article class=\"riqsit-note\"><h1 class=\"editor-title\">mention user</h1><section class=\"editor-body\"><p class=\"mentioned-user\">@RIQS Management - QA </p></section></article>",
+      "BackgroundColor": "none",
+      "Possition": {
+        "XCoordinate": 0,
+        "YCoordinate": 0
+      },
+      "Attachments": [],
+      "NoteType": "unit",
+      "AdditionalMetadata": {},
+      "MentionedUsers": [
+        {
+          "PraxisUserId": "e10fe0b5-1ddb-4e41-a380-df442f7fc538",
+          "UserId": "adac55ad-6021-4100-84e0-6cebe11e25a9",
+          "DisplayName": "RIQS Management - QA",
+          "Image": null,
+          "Email": "riqs.manage@yopmail.com"
+        }
+      ],
+      "CreateDate": "2026-05-03T09:35:49.455Z",
+      "CreatedBy": "568725bb-89ce-412b-8db8-3184badca278",
+      "LastUpdateDate": "2026-05-03T09:35:49.455Z",
+      "LastUpdatedBy": null,
+      "CommentCount": 0,
+      "OrderNumber": 70,
+      "IsPinned": null,
+      "PinnedBy": null,
+      "PinnedByDisplayName": null
+    }
+  ]
+}
+```
+**Response Fields:**
+
+| Field | Type | Description |
+|---|---|---|
+| `StatusCode` | `number` | Application-level status code. `0` = success |
+| `ErrorMessage` | `string \| null` | Error message if request fails, otherwise `null` |
+| `TotalRecordCount` | `number` | Total number of notes available (useful for pagination) |
+| `Results` | `RIQSNote[]` | Array of returned notes |
 
 ---
 
+**RIQSNote Object:**
+
+| Field | Type | Description |
+|---|---|---|
+| `ItemId` | `string` (GUID) | Unique ID of this record (note or related entity) |
+| `RIQSNoteId` | `string` (GUID) | ID of the parent RIQS Note |
+| `Content` | `string` (HTML) | HTML content of the note |
+| `Attachments` | `Attachment[]` | List of attached files |
+| `MentionedUsers` | `MentionedUser[]` | List of mentioned users |
+| `ClientId` | `string` (GUID) | Client this note belongs to |
+| `IsEdited` | `boolean` | Indicates whether the note has been edited |
+| `AdditionalMetadata` | `object` | Additional key-value metadata |
+| `CreateDate` | `string` (ISO datetime) | Creation timestamp |
+| `CreatedBy` | `string` (GUID) | User who created the note |
+| `LastUpdateDate` | `string` (ISO datetime) | Last updated timestamp |
+| `LastUpdatedBy` | `string \| null` | User who last updated the note |
+
+---
+
+**Attachment Object:**
+
+| Field | Type | Description |
+|---|---|---|
+| `DocumentId` | `string` (GUID) | Unique ID of the document |
+| `DocumentName` | `string` | File name with extension |
+| `CreateDate` | `string \| null` | Legacy field (often null) |
+| `CreatedOn` | `string` (ISO datetime) | Upload timestamp |
+| `FileType` | `string` | File type (e.g. `png`, `pdf`) |
+| `IsDeleted` | `boolean` | Soft delete flag |
+| `IsUploadedFromWeb` | `boolean` | Upload source indicator |
+
+---
+
+**MentionedUser Object:**
+
+| Field | Type | Description |
+|---|---|---|
+| `PraxisUserId` | `string` (GUID) | Praxis system user ID |
+| `UserId` | `string` (GUID) | Platform user ID |
+| `DisplayName` | `string` | User display name |
+| `Image` | `any \| null` | User profile image |
+| `Email` | `string` | User email address |
+
+**Returns:** `Observable<GetRIQSNoteCommentsResponse>` — emits the response body containing the list of comments for the given note.
+
+---
+
+### Create Note Comment
+### `saveRiqsNoteComment(payload)`
+
+Creates a new comment for a specific RIQS Note.
+> **Permission:** All authenticated users can create note comments.
+
+**Endpoint:** `POST PraxisMonitorQuery/CreateRIQSNoteComment`
+
+**Payload:**
+```json id="p3k8wx"
+{
+  "Content": "<article class=\"riqsit-note\"><section class=\"editor-body\"><p>Comment text here</p></section></article>",
+  "BackgroundColor": "none",
+  "Possition": {
+    "XCoordinate": 0,
+    "YCoordinate": 0
+  },
+  "Attachments": [],
+  "AdditionalMetadata": {},
+  "MentionedUsers": [],
+  "ClientId": "b9a1fcf1-2193-48b0-8722-c3d84c0ae070",
+  "RIQSNoteId": "404b5109-4a1c-4770-af04-0db5e7e16825"
+}
+```
+
+**Parameters:**
+| Param | Type | Default | Description |
+|---|---|---|---|
+| `Content` | `string` | - | HTML content of the comment |
+| `BackgroundColor` | `string` | `"none"` | Background color of the comment |
+| `Possition` | `object` | `{ XCoordinate: 0, YCoordinate: 0 }` | Position info (obsolete, always 0,0) |
+| `Attachments` | `Attachment[]` | `[]` | List of attached files |
+| `AdditionalMetadata` | `object` | `{}` | Extra metadata key-value pairs |
+| `MentionedUsers` | `MentionedUser[]` | `[]` | List of mentioned users in comment |
+| `ClientId` | `string` | - | Client identifier |
+| `RIQSNoteId` | `string` | - | Parent RIQS Note ID |
+
+**Success Response:**
+```json
+{
+    "Errors": {
+        "IsValid": true,
+        "Errors": [],
+        "RuleSetsExecuted": null
+    },
+    "ErrorMessages": [],
+    "StatusCode": 0,
+    "RequestUri": null,
+    "ExternalError": null,
+    "HttpStatusCode": 0
+}
+```
+ 
+**Returns:** `Observable<any>` — emits the command response confirming whether the comment was created successfully.
+
+---
+
+---
+
+### Update RIQS Note Comment
 ### `updateRiqsNoteComment(payload)`
 
 Updates an existing comment on a RIQS Note.
+> **Permission:** Only owner of note comment can update a note comment.
 
-**Endpoint:** `POST PraxisMonitorCommand/UpdateRIQSNoteComment`
+**Endpoint:** `POST PraxisMonitorQuery/UpdateRIQSNoteComment`
+
+**Payload:**
+```json id="p3k8wx"
+{
+    "Content": "<article class=\"riqsit-note\"><section class=\"editor-body\"><p>ssdfsdfsdx xxx</p></section></article>",
+    "BackgroundColor": "none",
+    "Possition": {
+        "XCoordinate": 0,
+        "YCoordinate": 0
+    },
+    "Attachments": [
+        {
+            "CreatedOn": "2026-05-06T15:09:20.13Z",
+            "DocumentId": "5780154d-9cf9-4789-9374-5dffd158199c",
+            "DocumentName": "image (3).png",
+            "FileType": "png",
+            "IsDeleted": false,
+            "IsUploadedFromWeb": true
+        }
+    ],
+    "AdditionalMetadata": {},
+    "MentionedUsers": [],
+    "ClientId": "b9a1fcf1-2193-48b0-8722-c3d84c0ae070",
+    "ItemId": "415f16a6-db95-48da-9a81-5316b1854a6b"
+}
+```
+
+**Parameters:**
+
+| Param | Type | Default | Description |
+|------|------|---------|-------------|
+| `Content` | `string (HTML)` | required | HTML content of the comment inside `<article class="riqsit-note">` structure |
+| `BackgroundColor` | `string` | `"none"` | Background color of the note/comment card |
+| `Possition` | `object` | `{ XCoordinate: 0, YCoordinate: 0 }` | Position metadata (currently unused, always 0,0) |
+| `Attachments` | `Attachment[]` | `[]` | List of attached files (images, PDFs, etc.) |
+| `AdditionalMetadata` | `object` | `{}` | Extra metadata key-value pairs |
+| `MentionedUsers` | `MentionedUser[]` | `[]` | List of tagged/mentioned users |
+| `ClientId` | `string (GUID)` | required | Client identifier for the request |
+| `ItemId` | `string (GUID)` | required | ID of the comment being updated |
+
+**Success Response:**
+```json
+{
+    "Errors": {
+        "IsValid": true,
+        "Errors": [],
+        "RuleSetsExecuted": null
+    },
+    "ErrorMessages": [],
+    "StatusCode": 0,
+    "RequestUri": null,
+    "ExternalError": null,
+    "HttpStatusCode": 0
+}
+```
+ 
+**Returns:** `Observable<any>` — emits the command response confirming whether the comment was successfully updated.
+
+---
+
+
+### Delete RIQS Note Comment
+### `deleteRiqsNoteComment(itemId)`
+
+Deletes an existing comment on a RIQS Note.
+> **Permission:** Professional and Management users can delete any note comment. All other users may only delete their own comment .
+
+**Endpoint:** `POST PraxisMonitorCommand/DeleteRIQSNoteComment`
 
 **Payload:**
 ```json
 {
-  "ItemId": "string (comment GUID)",
-  "Comment": "string (updated text)"
+    "ItemId": "62371ebc-1f0e-4d3e-a32f-13559b9d6748"
 }
 ```
-
-**Returns:** `Observable<any>` — response body of the updated comment.
-
----
-
-### `deleteRiqsNoteComment(itemId)`
-
-Deletes a comment by ID.
-
-**Endpoint:** `POST PraxisMonitorCommand/DeleteRIQSNoteComment`
 
 **Parameters:**
-| Param | Type | Description |
-|---|---|---|
-| `itemId` | `string` | The ID of the comment to delete |
 
-**Payload sent:**
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `ItemId` | `string (GUID)` | required | ID of the comment to be deleted |
+
+**Success Response:**
 ```json
 {
-  "ItemId": "string"
+    "Errors": {
+        "IsValid": true,
+        "Errors": [],
+        "RuleSetsExecuted": null
+    },
+    "ErrorMessages": [],
+    "StatusCode": 0,
+    "RequestUri": null,
+    "ExternalError": null,
+    "HttpStatusCode": 0
 }
 ```
 
-**Returns:** `Observable<any>` — response body confirming deletion.
+**Returns:** `Observable<any>` — emits the command response confirming whether the comment was successfully deleted.
 
----
 
+### Get Unread Notifications
 ### `getUnreadNotifications(userId, clientId)`
 
-Fetches all unread notifications for a user scoped to a specific client's RIQS Notes.
+Retrieves all notifications for a user filtered by a RIQS Note subscription context, and maps them to a read-status shape.
 
-**Endpoint:** `POST NotificationService/api/Notifier/GetUnreadNotificationsBySubscriptionFilter`
+**Endpoint:** `POST api/Notifier/GetUnreadNotificationsBySubscriptionFilter`
 
-**Parameters:**
-| Param | Type | Description |
-|---|---|---|
-| `userId` | `string` | The ID of the user to fetch notifications for |
-| `clientId` | `string` | The client context to filter notifications |
-
-**Payload sent:**
+**Payload:**
 ```json
 {
-  "UserId": "string",
-  "SubscriptionFilterData": {
-    "Context": "RIQSNote",
-    "ActionName": "NotifyUsers",
-    "Value": "string (clientId)"
-  }
+    "UserId": "da86ecd0-08eb-4995-8803-dfa6c09ad134",
+    "SubscriptionFilterData": {
+        "Context": "RIQSNote",
+        "ActionName": "NotifyUsers",
+        "Value": "b9a1fcf1-2193-48b0-8722-c3d84c0ae070"
+    }
 }
 ```
-
-**Returns:** `Observable<INotificationReadStatus[]>`
-
-Each item in the array has this shape:
-```typescript
-{
-  NotificationId: string;   // The notification's ID
-  NoteId: string;           // Extracted from DenormalizedPayload via regex
-  ReadByUserIds: string[];  // Users who have already read this notification
-}
-```
-
-> **Note:** `NoteId` is parsed from the `DenormalizedPayload` field using the pattern `RIQSNoteId = <guid>`. If no match is found, `NoteId` will be an empty string.
-
----
-
-### `markNotificationAsRead(id)`
-
-Marks a single notification as read.
 
 **Parameters:**
-| Param | Type | Description |
-|---|---|---|
-| `id` | `string` | The notification ID to mark as read |
 
-**Delegates to:** `NotificationService.markNotificationAsRead([id])`
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `UserId` | `string (GUID)` | required | ID of the user whose notifications are being fetched |
+| `SubscriptionFilterData.Context` | `string` | `"RIQSNote"` | The notification domain/context to filter by |
+| `SubscriptionFilterData.ActionName` | `string` | `"NotifyUsers"` | The action event name to filter by |
+| `SubscriptionFilterData.Value` | `string (GUID)` | required | Client ID used as the subscription filter value |
 
-**Returns:** `Observable<any>` — response body confirming the update.
+**Success Response:**
+```json
+[
+    {
+        "Id": "69f716f51603c677feafaa34",
+        "CorrelationId": null,
+        "Payload": {
+            "UserId": "da86ecd0-08eb-4995-8803-dfa6c09ad134",
+            "SubscriptionFilters": [
+                {
+                    "Context": "RIQSNote",
+                    "ActionName": "NotifyUsers",
+                    "Value": "b9a1fcf1-2193-48b0-8722-c3d84c0ae070"
+                }
+            ],
+            "NotificationType": "UserSpecificReceiverType",
+            "ResponseKey": "b9a1fcf1-2193-48b0-8722-c3d84c0ae070",
+            "ResponseValue": "{\"Success\":true}",
+            "UserItemId": "da86ecd0-08eb-4995-8803-dfa6c09ad134"
+        },
+        "DenormalizedPayload": "{ RIQSNoteId = 16e33d85-73de-46e1-b31d-36e19f0e2ad1 }",
+        "CreatedTime": "2026-05-03T09:35:49.842Z",
+        "ReadByUserIds": ["da86ecd0-08eb-4995-8803-dfa6c09ad134"],
+        "ReadByRoles": null,
+        "IsRead": true
+    }
+]
+```
 
----
+**Response Fields:**
 
+| Field | Type | Description |
+|-------|------|-------------|
+| `Id` | `string` | Unique notification record ID |
+| `Payload.UserId` | `string (GUID)` | The target user for this notification |
+| `Payload.NotificationType` | `string` | Delivery type; always `"UserSpecificReceiverType"` here |
+| `DenormalizedPayload` | `string` | Human-readable string containing the associated `RIQSNoteId` |
+| `CreatedTime` | `string (ISO 8601)` | Timestamp when the notification was created |
+| `ReadByUserIds` | `string[] \| null` | List of user IDs who have read this notification; `null` if unread |
+| `IsRead` | `boolean` | Whether the notification has been read by the current user |
+
+**Mapped Return Shape (`INotificationReadStatus`):**
+
+The raw response is mapped before being emitted. Each notification item is transformed as follows:
+
+| Field | Source | Description |
+|-------|--------|-------------|
+| `NotificationId` | `item.Id` | The notification record ID |
+| `NoteId` | Parsed from `item.DenormalizedPayload` via regex `/RIQSNoteId\s*=\s*([a-zA-Z0-9-]+)/` | The associated RIQS Note ID; empty string if not found |
+| `ReadByUserIds` | `item.ReadByUserIds` | Passed through as-is from the raw response |
+
+**Returns:** `Observable<INotificationReadStatus[]>` — emits the mapped list of notification read statuses for the given user and client subscription.
+
+### Mark Notification As Read
+### `markNotificationAsRead(id)`
+
+Marks one or more notifications as read for the current user.
+
+**Endpoint:** `POST /api/notification/v3//api/Notifier/UpdateNotificationStatusToRead`
+
+**Payload:**
+```json
+{
+    "UserId": "3f8841aa-d437-46a4-b6ad-a62353dd3a5c",
+    "NotificationIds": ["69ce891947303dc3081a5b90"]
+}
+```
+
+**Parameters:**
+
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `UserId` | `string (GUID)` | required | ID of the user marking the notification as read |
+| `NotificationIds` | `string[]` | required | Array of notification IDs to mark as read; wraps the single `id` argument in an array |
+
+**Success Response:**
+```json
+{
+    "Errors": {
+        "IsValid": true,
+        "Errors": [],
+        "RuleSetsExecuted": null
+    },
+    "ErrorMessages": [],
+    "StatusCode": 0,
+    "RequestUri": null,
+    "ExternalError": null,
+    "HttpStatusCode": 0
+}
+```
+
+**Returns:** `Observable<any>` — emits the command response confirming whether the notification was successfully marked as read.
+
+### Update RIQS Note Order
 ### `updateRIQSNoteOrder(noteId, orderNumber)`
 
-Updates the display order of a RIQS Note.
+Updates the display order of a RIQS Note, used when a note is dragged and dropped to a new position.
+
+> **Permission:** Professional and Management users can reorder any note. All other users may only reorder notes they own.
 
 **Endpoint:** `POST PraxisMonitorCommand/UpdateRIQSNoteOrder`
 
-**Parameters:**
-| Param | Type | Description |
-|---|---|---|
-| `noteId` | `string` | The ID of the note to reorder |
-| `orderNumber` | `number` | The new order position |
-
-**Payload sent:**
+**Payload:**
 ```json
 {
-  "NoteId": "string",
-  "OrderNumber": 0
+    "NoteId": "49695467-d170-4781-af8b-1863c1d64a29",
+    "OrderNumber": 15.3125
 }
 ```
 
-**Returns:** `Observable<any>` — response body confirming the order update.
+**Parameters:**
 
----
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `NoteId` | `string (GUID)` | required | ID of the note being reordered |
+| `OrderNumber` | `number (float)` | required | New order value calculated from surrounding notes (see Order Calculation below) |
 
+**Order Number Calculation**
+
+When a note is moved to a new position, its `OrderNumber` is calculated as the midpoint between the order numbers of its new neighbours:
+
+```
+OrderNumber = (prevNote.OrderNumber + nextNote.OrderNumber) / 2
+```
+
+This allows inserting notes between existing ones without renumbering the entire list.
+
+| Scenario | Calculation | Example |
+|----------|-------------|---------|
+| Between two notes | `(prev + next) / 2` | `(10 + 20) / 2 = 15` |
+| Moved to first position | `nextNote.OrderNumber / 2` | `10 / 2 = 5` |
+| Moved to last position | `prevNote.OrderNumber + some increment` | `20 + 10 = 30` |
+
+**Success Response:**
+```json
+{
+    "Errors": {
+        "IsValid": true,
+        "Errors": [],
+        "RuleSetsExecuted": null
+    },
+    "ErrorMessages": [],
+    "StatusCode": 0,
+    "RequestUri": null,
+    "ExternalError": null,
+    "HttpStatusCode": 0
+}
+```
+
+**Returns:** `Observable<any>` — emits the command response confirming whether the note order was successfully updated.
+
+> **Note:** Using midpoint insertion keeps `OrderNumber` values as floats and avoids reindexing the full list on every reorder. Over many reorders, values may converge; a full reindex may be needed if precision is exhausted.
+
+### Pin / Unpin RIQS Note
 ### `updateNotePinnedStatus(noteId, isPinned)`
 
-Toggles the pinned status of a RIQS Note.
+Toggles the pinned state of a RIQS Note.
+
+> **Permission:** Only Professional and Management users can pin any note in unit view.
+
+> **Note:** The `IsPinned` value sent in the payload is the **inverse** of the note's current state — i.e. `!isPinned` — effectively toggling it.
 
 **Endpoint:** `POST PraxisMonitorCommand/PinRIQSNote`
 
-**Parameters:**
-| Param | Type | Description |
-|---|---|---|
-| `noteId` | `string` | The ID of the note to pin/unpin |
-| `isPinned` | `boolean` | The **current** pinned state (the service will automatically invert it) |
-
-**Payload sent:**
+**Payload:**
 ```json
 {
-  "NoteId": "string",
-  "IsPinned": true
+    "NoteId": "dbae1999-0316-4b28-98e4-3c8cc574abb6",
+    "IsPinned": false
 }
 ```
 
-> **Important:** The service sends `!isPinned` to the API — so pass the **current** value, not the desired one.
+**Parameters:**
 
-**Returns:** `Observable<any>` — response body confirming the pin status update.
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `NoteId` | `string (GUID)` | required | ID of the note to pin or unpin |
+| `IsPinned` | `boolean` | required | The new pinned state; always passed as `!currentIsPinned` to toggle |
 
----
-
-## Models
-
-### `INotification`
-Represents a raw notification from the notification service.
-```typescript
-interface INotification {
-  Id: string;
-  DenormalizedPayload: string;  // Contains "RIQSNoteId = <guid>"
-  ReadByUserIds: string[];
+**Success Response:**
+```json
+{
+    "Errors": {
+        "IsValid": true,
+        "Errors": [],
+        "RuleSetsExecuted": null
+    },
+    "ErrorMessages": [],
+    "StatusCode": 0,
+    "RequestUri": null,
+    "ExternalError": null,
+    "HttpStatusCode": 0
 }
 ```
 
-### `INotificationReadStatus`
-Simplified notification shape returned by `getUnreadNotifications()`.
-```typescript
-interface INotificationReadStatus {
-  NotificationId: string;
-  NoteId: string;
-  ReadByUserIds: string[];
+**Returns:** `Observable<any>` — emits the command response confirming whether the note's pinned status was successfully updated.
+
+### Get Pre-Signed URL For Upload
+### `getPreSignedUrlForUpload(payload)`
+
+Requests a pre-signed URL from the storage service to allow direct file upload for a RIQS Note attachment.
+
+**Endpoint:** `POST StorageQuery/GetPreSignedUrlForUpload`
+
+**Payload:**
+```json
+{
+    "ItemId": "83dfb00a-680b-4bfb-9131-6bedc6d94da4",
+    "Name": "image (3).png",
+    "Tags": "[\"File-Of-Note\",\"File\"]",
+    "MetaData": "{\"FileInfo\":{\"Value\":\"image (3).png\",\"Type\":\"image/png\"}}",
+    "ParentDirectoryId": ""
 }
 ```
 
----
+**Parameters:**
 
-## Dependencies
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `ItemId` | `string (GUID)` | required | Unique ID for the file being uploaded; typically pre-generated on the client |
+| `Name` | `string` | required | Original filename including extension |
+| `Tags` | `string (JSON)` | required | JSON-stringified array of tags categorising the file (e.g. `["File-Of-Note", "File"]`) |
+| `MetaData` | `string (JSON)` | required | JSON-stringified object containing file info such as the original filename and MIME type |
+| `ParentDirectoryId` | `string` | `""` | ID of the parent directory in storage; empty string for root-level uploads |
 
-| Dependency | Purpose |
-|---|---|
-| `HttpClient` | All HTTP requests |
-| `CommonService` | Shared utility methods |
-| `GqlQueryBuilderService` | Builds `FilterString` from `Filter[]` arrays |
-| `NotificationService` | Marks notifications as read |
-| `ShellDomainProvider` | Provides base URLs for APIs |
+**Returns:** `Observable<any>` — emits the pre-signed URL response from the storage service, which the client then uses to upload the file directly.
