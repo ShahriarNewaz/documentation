@@ -644,7 +644,7 @@ Deletes an existing comment on a RIQS Note.
 
 **Returns:** `Observable<any>` — emits the command response confirming whether the comment was successfully deleted.
 
-
+---
 ### Get Unread Notifications
 ### `getUnreadNotifications(userId, clientId)`
 
@@ -726,6 +726,7 @@ The raw response is mapped before being emitted. Each notification item is trans
 
 **Returns:** `Observable<INotificationReadStatus[]>` — emits the mapped list of notification read statuses for the given user and client subscription.
 
+---
 ### Mark Notification As Read
 ### `markNotificationAsRead(id)`
 
@@ -766,6 +767,7 @@ Marks one or more notifications as read for the current user.
 
 **Returns:** `Observable<any>` — emits the command response confirming whether the notification was successfully marked as read.
 
+---
 ### Update RIQS Note Order
 ### `updateRIQSNoteOrder(noteId, orderNumber)`
 
@@ -826,6 +828,7 @@ This allows inserting notes between existing ones without renumbering the entire
 
 > **Note:** Using midpoint insertion keeps `OrderNumber` values as floats and avoids reindexing the full list on every reorder. Over many reorders, values may converge; a full reindex may be needed if precision is exhausted.
 
+---
 ### Pin / Unpin RIQS Note
 ### `updateNotePinnedStatus(noteId, isPinned)`
 
@@ -870,6 +873,7 @@ Toggles the pinned state of a RIQS Note.
 
 **Returns:** `Observable<any>` — emits the command response confirming whether the note's pinned status was successfully updated.
 
+---
 ### Get Pre-Signed URL For Upload
 ### `getPreSignedUrlForUpload(payload)`
 
