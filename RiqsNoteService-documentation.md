@@ -76,7 +76,6 @@ Once placed on the whiteboard, a note:
 - **Pinning** a note fixes it in place on the unit whiteboard. Only Management and Power users can pin or unpin any note
 - A pinned note **cannot be moved by anyone**, including the original author — the pinned status overrides all other move permissions
 - Professionals can only reorder **their own notes**; they cannot move notes created by others
-- All reorder and pin changes are **synchronized in real time** across all users viewing the unit whiteboard
 
 ---
 ### Notifications
@@ -106,7 +105,7 @@ Once placed on the whiteboard, a note:
 
 ---
 
-# RiqsNoteService Documentation
+## RiqsNoteService Documentation
 **File:** `riqs-note.service.ts`  
 **Injectable:** Root-level singleton  
 **Purpose:** Manages all HTTP operations for RIQS Notes, Comments, Notifications, and ordering/pinning.
