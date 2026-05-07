@@ -1,9 +1,115 @@
-# RiqsNoteService Documentation
+# RiqsItNote Documentation
 
+## Scope
+
+### Overview
+
+RiQS-It is a lightweight, informal communication tool that functions like a digital whiteboard where users can create and manage "Post-It" style notes. It is accessible as a persistent overlay on any screen — not a separate module — and is triggered via a floating button fixed to the bottom-right corner of the interface (draggable by the user). When activated, RiQS-It slides in from the right as an overlay and can be resized or expanded to full screen.
+
+---
+
+### Whiteboards
+
+There are two whiteboards available to each user:
+
+| Whiteboard | Visibility | Description |
+|---|---|---|
+| **Personal** | Private — owner only | A personal space where only the user can see and manage their own notes |
+| **Unit** | Shared — all unit members | A shared space where all users of a given unit can create and view notes |
+
+---
+
+### Accessing RiQS-It
+
+- RiQS-It is **not** a module in the left sidebar
+- A **floating button** is permanently visible in the bottom-right corner of the screen (default position on login), draggable anywhere on screen
+- Clicking the button opens RiQS-It as a **right-side overlay** sliding in from the right
+- The overlay can be:
+  - Expanded to **full screen** via an expand icon
+  - **Resized** by dragging from the left edge
+  - **Closed** via an always-visible `X` button, which collapses the panel and restores the floating button
+
+---
+
+### Notes
+
+Creating a note is quick and simple. When creating a note, a user can:
+
+- Select a **background color** for the note
+- Write the **text content** of the note
+- Add **attachments** — from RiQS-Pedia, uploaded from desktop, or taken as a photo on mobile
+- **Save** the note to place it on the whiteboard
+- **Cancel** to discard
+
+Once placed on the whiteboard, a note:
+
+- Can be **moved freely** around the board
+- Retains its position **persistently** across sessions (including after logout)
+
+---
+
+### Personal Whiteboard
+
+- Each user has a private whiteboard visible **only to themselves**
+- Users can create, edit, and delete their own notes
+- Editable fields: note content and background color
+- Each note automatically displays the **date of creation** in the top-right corner
+
+---
+
+### Unit Whiteboard
+
+- All users of a unit share access to a single unit whiteboard
+- Each note displays the **creator's name and date of creation** in the top-right corner
+- Permissions:
+
+| Action | Who can perform |
+|---|---|
+| Create a note | All unit users |
+| Move a note | All unit users |
+| Edit own note | Note creator only |
+| Delete own note | Note creator only |
+| Delete any note | Power-Users and Management users only |
+---
+### Note Ordering and Pinning Rules:
+
+- **Pinning** a note fixes it in place on the unit whiteboard. Only Management and Power users can pin or unpin any note
+- A pinned note **cannot be moved by anyone**, including the original author — the pinned status overrides all other move permissions
+- Professionals can only reorder **their own notes**; they cannot move notes created by others
+- All reorder and pin changes are **synchronized in real time** across all users viewing the unit whiteboard
+
+---
+### Notifications
+
+- When a new note is created on the **unit whiteboard**, all unit users receive a notification via the floating RiQS-It button (badge indicator)
+- Clicking the notification badge opens RiQS-It directly to the **Unit** tab
+- Once the unit view is opened, the notification is considered **read and is dismissed**
+
+---
+## Permissions
+
+| Operation | Endpoint | Permission |
+|---|---|---|
+| `createNote` | `CreateRIQSNote` | All authenticated users |
+| `updateNote` | `UpdateRIQSNote` | Note owner only |
+| `getRiqsNotes` | `GetRIQSNote` | All authenticated users |
+| `deleteRiqsNote` | `DeleteRIQSNote` | Own note — any user. Any note — Power and Management users |
+| `getRiqsNoteComments` | `GetRIQSNoteComments` | All authenticated users |
+| `saveRiqsNoteComment` | `CreateRIQSNoteComment` | All authenticated users |
+| `updateRiqsNoteComment` | `UpdateRIQSNoteComment` | Comment owner only |
+| `deleteRiqsNoteComment` | `DeleteRIQSNoteComment` | Own comment — any user. Any comment — Professional and Management users |
+| `getUnreadNotifications` | `GetUnreadNotificationsBySubscriptionFilter` | Authenticated user (own notifications) |
+| `markNotificationAsRead` | `UpdateNotificationStatusToRead` | Authenticated user (own notifications) |
+| `updateRIQSNoteOrder` | `UpdateRIQSNoteOrder` | **Personal view:** all authenticated users. **Unit view:** Management and Power users can reorder any note. Professionals can only reorder their own notes. If a note is pinned, it cannot be moved by anyone regardless of authorship |
+| `updateNotePinnedStatus` | `PinRIQSNote` | Management and Power users only (unit view). Pinned status overrides all move permissions — the original author can no longer move their own note while it is pinned |
+| `getPreSignedUrlForUpload` | `GetPreSignedUrlForUpload` | All authenticated users |
+
+---
+
+# RiqsNoteService Documentation
 **File:** `riqs-note.service.ts`  
 **Injectable:** Root-level singleton  
 **Purpose:** Manages all HTTP operations for RIQS Notes, Comments, Notifications, and ordering/pinning.
-
 ---
 
 ## Base URLs
@@ -14,6 +120,7 @@
 | Command (POST/mutate) | `PraxisBusinessService/PraxisMonitorCommand/` |
 | Notifications | `NotificationService/api/Notifier/GetUnreadNotificationsBySubscriptionFilter` |
 ---
+
 ## Methods
 
 ### Create Note
@@ -266,12 +373,10 @@ Fetches a list of RIQS Notes, optionally filtered.
 
 | Field | Type | Description |
 |---|---|---|
-| `StatusCode` | `number` | Application-level status code. `0` = success |
+| `StatusCode` | `number` | Appplication-level status code. `0` = success |
 | `ErrorMessage` | `string \| null` | Error message if request fails, otherwise `null` |
 | `TotalRecordCount` | `number` | Total number of notes available (useful for pagination) |
 | `Results` | `RIQSNote[]` | Array of returned notes |
-
----
 
 **RIQSNote Object:**
 
@@ -307,7 +412,7 @@ Deletes a RIQS Note by ID.
 
 > **Permission:** 
 - Every user can delete their own note.
-- **Purpose:** Power and management users can delete any note.
+- Power and management users can delete any note.
 
 **Parameters:**
 | Param | Type | Description |
@@ -490,8 +595,6 @@ Creates a new comment for a specific RIQS Note.
 **Success Response:** See [Success Response](#success-response).
  
 **Returns:** `Observable<any>` — emits the command response confirming whether the comment was created successfully.
-
----
 
 ---
 
@@ -813,4 +916,3 @@ All endpoints return the following response on success:
 }
 ```
 
----
