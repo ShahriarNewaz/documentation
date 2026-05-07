@@ -109,6 +109,7 @@ Once placed on the whiteboard, a note:
 **File:** `riqs-note.service.ts`  
 **Injectable:** Root-level singleton  
 **Purpose:** Manages all HTTP operations for RIQS Notes, Comments, Notifications, and ordering/pinning.
+
 ---
 
 ## Base URLs
