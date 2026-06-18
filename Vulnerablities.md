@@ -5,20 +5,20 @@
 
 | Collection | Status | Issue | Action |
 |---|---|---|---|
-| FileVersions | 🔴 Critical | COLLSCAN — 157K docs examined | Add compound index |
-| Files | 🔴 Critical | IXSCAN but 10,982 docs examined for 100 returned | Review query & index coverage |
-| CoscompStockInfos | 🔴 Critical | 917ms for 450 docs | Needs index investigation |
-| Movres | 🟡 Monitor | Only 318 docs now — acceptable | Re-evaluate when volume grows |
-| Users | 🟢 OK | Using IXSCAN mostly | No action needed |
-| StockChartHistoricalPrices | 🟢 OK | Index already added | — |
-| UserReadableDatas | 🟢 OK | Only 13 documents | No index needed |
-| UserRoleMaps | ⚪ N/A | Not examined | — |
-| UserProfiles | ⚪ N/A | Not examined | — |
-| UserActivationKeyMaps | ⚪ N/A | Not examined | — |
+| FileVersions |  Critical | COLLSCAN — 157K docs examined | Add compound index |
+| Files |  Critical | IXSCAN but 10,982 docs examined for 100 returned | Review query & index coverage |
+| CoscompStockInfos |  Critical | 917ms for 450 docs | Needs index investigation |
+| Movres |  Monitor | Only 318 docs now — acceptable | Re-evaluate when volume grows |
+| Users |  OK | Using IXSCAN mostly | No action needed |
+| StockChartHistoricalPrices |  OK | Index already added | — |
+| UserReadableDatas | OK | Only 13 documents | No index needed |
+| UserRoleMaps | ⚪ N/A | ok | — |
+| UserProfiles | ⚪ N/A | ok | — |
+| UserActivationKeyMaps | ⚪ N/A | ok | — |
 
 ---
 
-## 🔴 FileVersions — Critical
+##  FileVersions — Critical
 
 ### Current State
 
@@ -41,7 +41,7 @@ Without an index, MongoDB scans all ~157K documents. The compound index allows i
 
 ---
 
-## 🔴 Files — Critical
+##  Files — Critical
 
 ### Current State
 
@@ -72,7 +72,7 @@ An index is being used, but the ratio of `docsExamined` to `nreturned` is **110:
 
 ---
 
-## 🔴 CoscompStockInfos — Critical
+##  CoscompStockInfos — Critical
 
 ### Current State
 
@@ -110,7 +110,7 @@ db.CoscompStockInfos.createIndex({ symbol: 1, date: -1 })
 
 ---
 
-## 🟡 Movres — Monitor
+##  Movres — Monitor
 
 ### Current State
 
