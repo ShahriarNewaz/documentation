@@ -12,9 +12,9 @@
 | Users |  OK | Using IXSCAN mostly | No action needed |
 | StockChartHistoricalPrices |  OK | Index already added | — |
 | UserReadableDatas | OK | Only 13 documents | No index needed |
-| UserRoleMaps | ⚪ N/A | ok | — |
-| UserProfiles | ⚪ N/A | ok | — |
-| UserActivationKeyMaps | ⚪ N/A | ok | — |
+| UserRoleMaps |  N/A | ok | — |
+| UserProfiles |  N/A | ok | — |
+| UserActivationKeyMaps |  N/A | ok | — |
 
 ---
 
