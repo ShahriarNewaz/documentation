@@ -1,0 +1,137 @@
+
+==========
+FileVersions collectin
+
+  "op": "remove",
+  "command": {
+    "q": {
+      "FileId": "529cd052-ee4d-46be-9e95-5857244e705b"
+    },
+    "limit": 0
+  },
+  "docsExamined": 157410,
+  "ndeleted": 1,
+  //
+"op": "query",
+  "command": {
+    "find": "FileVersions",
+    "filter": {
+      "FileId": "55941122-5d23-46fb-b56d-e307c9688f4a"
+    },
+    "projection": {
+      "_id": 1
+    },
+    "$db": "009C0E1D-B613-4043-A56C-2F06F308EDFB",
+    "lsid": {
+      "id": {
+        "$uuid": "1f3aa69a-79c0-4c64-8d3f-23dcc5130a0b"
+      }
+    }
+  },
+  "docsExamined": 157418,
+  "nreturned": 1,
+  
+  //
+  
+  "command": {
+    "aggregate": "FileVersions",
+    "pipeline": [
+      {
+        "$match": {
+          "FileId": {
+            "$in": [
+              "948bb28a-b373-472b-aa7e-e39995d2d627"
+            ]
+          }
+        }
+      },
+      {
+        "$sort": {
+          "No": -1
+        }
+      },
+      {
+        "$group": {
+          "_id": "$FileId",
+          "SizeInBytes": {
+            "$first": "$SizeInBytes"
+          },
+          "VersionId": {
+            "$first": "$_id"
+          },
+          "MaxVersion": {
+            "$max": "$No"
+          }
+        }
+      }
+    ],
+  },
+  "docsExamined": 60070,
+  "nreturned": 1,
+  
+===============================
+
+
+  "op": "query",
+  "ns": "009C0E1D-B613-4043-A56C-2F06F308EDFB.CoscompStockInfos",
+  "command": {
+    "find": "CoscompStockInfos",
+    "filter": {
+      "Symbol": {
+        "$in": [
+          "B-S_X_O_SK"
+        ]
+      },
+      "$or": [
+        {
+          "RolesAllowedToRead": {
+            "$in": [
+              "site_",
+              "system-admin",
+              "super-admin"
+            ]
+          }
+        },
+        {
+          "IdsAllowedToRead": {
+            "$in": [
+              "7c4ebb85-edb9-4445-8aed-5591543c10ed"
+            ]
+          }
+        }
+      ]
+    },
+    "$db": "009C0E1D-B613-4043-A56C-2F06F308EDFB",
+    "lsid": {
+      "id": {
+        "$uuid": "29eb46c2-4cd0-40b3-914e-6826315d2919"
+      }
+    }
+  },
+  "nreturned": 1,
+  "docsExamined": 450, 
+  queryHash: "3B38BE08"
+  
+	//
+  
+db.FileVersions.createIndex({ FileId: 1, No: -1 })
+Expected result 
+planSummary COLLSCAN  -> IXSCAN
+docsExamined ~157,000 -> 1
+millis 3,366ms  ->  < 5ms
+
+
+Users:  uses Ixscan mostly
+UserRoleMaps: n/a
+UserReadableDatas:  n/a  only 13 documents
+UserProfiles: n/a
+UserActivationKeyMaps: n/a
+StockChartHistoricalPrices: n/a index already added 
+Movres: currently only 318 doc if more doc can be examined better
+Files: slow even after using index /docsExamined: 10982 nreturned: 100 ~3.4sec so if more docs increase time will increase too
+CoscompStockInfos:
+"find": "CoscompStockInfos",
+"docsExamined": 450,
+"nreturned": 1,
+"millis": 917,
+for 450 file takes ~1sec 
